@@ -1,0 +1,12 @@
+--- apache_1.3.42/src/modules/standard/mod_auth_dbm.c.orig	2011-10-27 05:39:35.225756928 +0100
++++ apache_1.3.42/src/modules/standard/mod_auth_dbm.c	2011-10-27 05:39:46.644870910 +0100
+@@ -39,7 +39,7 @@
+ #define dbm_fetch sdbm_fetch
+ #define dbm_close sdbm_close
+ #else
+-#include <ndbm.h>
++#include <gdbm-ndbm.h>
+ #endif
+ 
+ /*
+Berkeley DB, so force DBM to be Berkeley DB for httpd, too.

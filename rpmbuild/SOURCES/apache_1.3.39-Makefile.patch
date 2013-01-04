@@ -1,0 +1,23 @@
+--- Makefile.tmpl.orig	2007-10-16 06:41:12.000000000 +0100
++++ Makefile.tmpl	2007-10-16 06:42:14.000000000 +0100
+@@ -233,8 +233,6 @@ install-mktree:
+ 	$(MKDIR) $(root)$(cgidir)
+ 	$(MKDIR) $(root)$(includedir)
+ 	$(MKDIR) $(root)$(includedir)/xml
+-	$(MKDIR) $(root)$(runtimedir)
+-	$(MKDIR) $(root)$(logfiledir)
+ 	$(MKDIR) $(root)$(proxycachedir)
+ 	-@if [ "x`$(AUX)/getuid.sh`" = "x0" ]; then \
+ 		echo "chown $(conf_user) $(root)$(proxycachedir)"; \
+@@ -313,10 +311,7 @@ install-support:
+ 		apachectl="$(TARGET)ctl"; \
+ 	fi; \
+ 	echo "$(INSTALL_SCRIPT) $(TOP)/$(SRC)/support/apachectl[*] $(root)$(sbindir)/$${apachectl}"; \
+-	sed -e 's;PIDFILE=.*;PIDFILE=$(runtimedir)/$(TARGET).pid;' \
+-		-e 's;HTTPD=.*;HTTPD=$(sbindir)/$(TARGET);' \
+-		< $(TOP)/$(SRC)/support/apachectl > $(TOP)/$(SRC)/.apaci.install.tmp && \
+-		$(INSTALL_SCRIPT) $(TOP)/$(SRC)/.apaci.install.tmp $(root)$(sbindir)/$${apachectl}; \
++    $(INSTALL_SCRIPT) $(TOP)/$(SRC)/support/apachectl $(root)$(sbindir)/$${apachectl}; \
+ 	echo "$(INSTALL_DATA) $(TOP)/$(SRC)/support/apachectl.8 $(root)$(mandir)/man8/$${apachectl}.8"; \
+ 	$(INSTALL_DATA) $(TOP)/$(SRC)/support/apachectl.8 $(root)$(mandir)/man8/$${apachectl}.8
+ 	$(INSTALL_PROGRAM) $(TOP)/$(SRC)/support/checkgid $(root)$(bindir)/checkgid

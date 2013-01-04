@@ -1,0 +1,7 @@
+/var/log/httpd13/*_log {
+    missingok
+    sharedscripts
+    postrotate
+	/bin/kill -HUP `cat /var/run/httpd13.pid 2>/dev/null` 2> /dev/null || true
+    endscript
+}

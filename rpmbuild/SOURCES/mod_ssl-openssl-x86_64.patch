@@ -1,0 +1,11 @@
+--- mod_ssl-2.8.4-1.3.20/pkg.sslmod/libssl.module	Fri Jul 13 18:30:41 2001
++++ mod_ssl-2.8.4-1.3.20/pkg.sslmod/libssl.module	Fri Jul 13 18:30:30 2001
+@@ -413,7 +413,7 @@
+     #
+     if [ ".$SSL_BASE" = .SYSTEM ]; then
+         SSL_LIBDIR=""
+-        for p in . /lib /usr/lib /usr/local/lib; do
++        for p in . /lib64 /usr/lib64 /usr/local/lib64; do
+             if [ -f "$p/libssl.a" -o -f "$p/libssl.so" ]; then
+                 SSL_LIBDIR="$p"
+                 my_real_ssl_libdir="$p"

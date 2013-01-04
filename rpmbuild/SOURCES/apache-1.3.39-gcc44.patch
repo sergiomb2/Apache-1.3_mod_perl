@@ -1,0 +1,15 @@
+--- apache_1.3.39/src/os/unix/os.h.orig	2009-01-04 05:05:09.000000000 +0000
++++ apache_1.3.39/src/os/unix/os.h	2009-01-04 05:06:30.000000000 +0000
+@@ -33,7 +33,12 @@
+ /* Compiler supports inline, so include the inlineable functions as
+  * part of the header
+  */
++#ifdef __GNUC_STDC_INLINE__
++#define INLINE extern ap_inline __attribute__((gnu_inline))
++#else
+ #define INLINE extern ap_inline
++#endif
++
+ 
+ INLINE int ap_os_is_path_absolute(const char *file);
+ 

@@ -1,0 +1,138 @@
+#!/bin/bash
+#
+# Startup script for the Apache Web Server
+#
+# chkconfig: - 85 15
+# description: Apache is a World Wide Web server.  It is used to serve \
+#	       HTML files and CGI.
+# processname: httpd
+# pidfile: /var/run/httpd.pid
+# config: /etc/httpd/conf/httpd.conf
+# config: /etc/sysconfig/apache
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# This will prevent initlog from swallowing up a pass-phrase prompt if
+# mod_ssl needs a pass-phrase from the user.
+INITLOG_ARGS=""
+
+# Path to the apachectl script, server binary, and short-form for messages.
+apachectl=/usr/local/sbin/apachectl
+httpd=/usr/local/sbin/httpd13
+pidfile=/var/run/httpd13.pid
+prog=httpd
+RETVAL=0
+
+# do you really wanna use that moduleargs routine?!
+USE_MODULEARGS='no'
+
+# maximum seconds to wait for apache processes to shutdown
+SHUTDOWN_TIMEOUT=180
+
+# Source additional OPTIONS if we have them.
+[ -f /etc/sysconfig/apache ] && . /etc/sysconfig/apache
+
+# Find the installed modules and convert their names into arguments
+# httpd can use.
+moduleargs() {
+	moduledir=/usr/local/lib/apache
+	moduleargs=`
+	/usr/bin/find ${moduledir} -type f -perm -0100 -name "*.so" | env -i tr '[:lower:]' '[:upper:]' | awk '{\
+	gsub(/.*\//,"");\
+	gsub(/^MOD_/,"");\
+	gsub(/^LIB/,"");\
+	gsub(/\.SO$/,"");\
+	print "-DHAVE_" $0}'`
+	echo ${moduleargs}
+}
+
+# The semantics of these two functions differ from the way apachectl does
+# things -- attempting to start while running is a failure, and shutdown
+# when not running is also a failure.  So we just do it the way init scripts
+# are expected to behave here.
+start() {
+	echo -n $"Starting $prog: "
+	if [ "$USE_MODULEARGS" != 'no' ] ; then
+		daemon $httpd `moduleargs` $OPTIONS
+	else
+		daemon $httpd $OPTIONS
+	fi
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && touch /var/lock/subsys/httpd13
+	return $RETVAL
+}
+
+httpd_check() {
+	if [ -f ${pidfile} ] ; then
+		echo $(pgrep -s $(cat ${pidfile}) |grep -c .)
+	else
+		echo 0
+	fi
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	no=$(httpd_check)
+	if [ $no -gt 0 ] ; then
+		kill -TERM $(cat ${pidfile}) &
+		rm -f /var/lock/subsys/httpd13
+		# now let's wait to really shut the server down!
+		timeout=0
+		while : ; do
+			no=$(httpd_check)
+			# anymore running processes?
+			[ $no -gt 0 ] || break
+			# max timeout exceeded?
+			if [ $timeout -ge $SHUTDOWN_TIMEOUT ]; then
+			    echo
+			    return 1
+			fi
+			# gimme some mo'
+			sleep 2 && echo -n "." 
+			timeout=$((timeout+2))
+		done
+
+		rm -f ${pidfile}
+		echo_success
+		echo
+	    return 0
+	else
+		echo_failure
+		echo
+	    return 1
+	fi
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	status $httpd
+	;;
+  restart|reload)
+	stop
+	start
+	;;
+  condrestart)
+	if [ -f ${pidfile} ] ; then
+		stop
+		start
+	fi
+	;;
+  fullstatus|graceful|help|configtest)
+	$apachectl $@
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|condrestart|status|fullstatus|graceful|help|configtest}"
+	exit 1
+esac
+
+exit $RETVAL

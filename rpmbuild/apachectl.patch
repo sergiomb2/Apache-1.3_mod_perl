@@ -1,0 +1,11 @@
+--- /usr/local/sbin/apachectl.orig	2012-05-16 23:29:41.626641334 +0100
++++ /usr/local/sbin/apachectl	2012-05-16 23:29:54.443318418 +0100
+@@ -50,7 +50,7 @@ fi
+ # this function collects the list of module-type files and returns a list
+ # of -D flags which can be appended to the httpd command line (used below)
+ moduleargs() {
+-        moduledir=/usr/local/lib/apache
++        moduledir=/usr/local/lib64/apache
+         moduleargs=`
+         /usr/bin/find ${moduledir} -type f -perm -0100 -name "*.so" | env -i tr '[:lower:]' '[:upper:]' | awk '{\
+                 gsub(/.*\//,"");\

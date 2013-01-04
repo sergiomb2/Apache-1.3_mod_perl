@@ -1,0 +1,11 @@
+--- /etc/init.d/httpd13.orig	2012-05-16 23:33:15.170642229 +0100
++++ /etc/init.d/httpd13	2012-05-16 23:33:35.098641908 +0100
+@@ -36,7 +36,7 @@ SHUTDOWN_TIMEOUT=180
+ # Find the installed modules and convert their names into arguments
+ # httpd can use.
+ moduleargs() {
+-	moduledir=/usr/local/lib/apache
++	moduledir=/usr/local/lib64/apache
+ 	moduleargs=`
+ 	/usr/bin/find ${moduledir} -type f -perm -0100 -name "*.so" | env -i tr '[:lower:]' '[:upper:]' | awk '{\
+ 	gsub(/.*\//,"");\

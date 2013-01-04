@@ -1,0 +1,49 @@
+This patch makes apachectl nominally compatible with the init script included
+in this package, so that apachectl can be used normally.
+--- apache_1.3.20/src/support/apachectl
++++ apache_1.3.20/src/support/apachectl
+@@ -2,0 +2,4 @@
++# This file has been modified from the default version written by the Apache
++# Group, to use the moduleargs function and to pull additional options to be
++# passed to the daemon from /etc/sysconfig/apache.
++#
+@@ -18,14 +22,37 @@
+ # one is reported.  Run "apachectl help" for usage info
+ #
+ #
++# source function library
++. /etc/rc.d/init.d/functions
++#
++# source additional OPTIONS if we have them -- has to be done here because
++# we reference the OPTIONS variable (which may be set in this file) below
++if [ -f /etc/sysconfig/apache ] ; then
++        . /etc/sysconfig/apache
++fi
++#
++# this function collects the list of module-type files and returns a list
++# of -D flags which can be appended to the httpd command line (used below)
++moduleargs() {
++        moduledir=/usr/local/lib/apache
++        moduleargs=`
++        /usr/bin/find ${moduledir} -type f -perm -0100 -name "*.so" | env -i tr '[:lower:]' '[:upper:]' | awk '{\
++                gsub(/.*\//,"");\
++                gsub(/^MOD_/,"");\
++                gsub(/^LIB/,"");\
++                gsub(/\.SO$/,"");\
++                print "-DHAVE_" $0}'`
++        echo ${moduleargs}
++}
++#
+ # |||||||||||||||||||| START CONFIGURATION SECTION  ||||||||||||||||||||
+ # --------------------                              --------------------
+ # 
+ # the path to your PID file
+-PIDFILE=/usr/local/apache/logs/httpd.pid
++PIDFILE=/var/run/httpd13.pid
+ #
+ # the path to your httpd binary, including options if necessary
+-HTTPD='/usr/local/apache/src/httpd'
++HTTPD="/usr/local/sbin/httpd13 `moduleargs` $OPTIONS"
+ #
+ # a command that outputs a formatted text version of the HTML at the
+ # url given on the command line.  Designed for lynx, however other

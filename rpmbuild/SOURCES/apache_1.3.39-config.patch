@@ -1,0 +1,497 @@
+--- apache_1.3.39/conf/httpd.conf-dist.orig 2007-10-16 05:40:14.000000000 +0100
++++ apache_1.3.39/conf/httpd.conf-dist 2007-10-16 05:42:10.000000000 +0100
+@@ -56,6 +56,8 @@ ServerType standalone
+ # (available at <URL:http://www.apache.org/docs/mod/core.html#lockfile>);
+ # you will save yourself a lot of trouble.
+ #
++# Do NOT add a slash at the end of the directory path.
++#
+ ServerRoot "@@ServerRoot@@"
+ 
+ #
+@@ -67,13 +69,13 @@ ServerRoot "@@ServerRoot@@"
+ # DISK. The PID of the main server process is automatically appended to
+ # the filename. 
+ #
+-#LockFile logs/accept.lock
++LockFile /var/run/httpd13.lock
+ 
+ #
+ # PidFile: The file in which the server should record its process
+ # identification number when it starts.
+ #
+-PidFile logs/httpd.pid
++PidFile /var/run/httpd13.pid
+ 
+ #
+ # ScoreBoardFile: File used to store internal server process information.
+@@ -133,13 +135,13 @@ KeepAliveTimeout 15
+ # spares die off.  The default values are probably OK for most sites.
+ #
+ MinSpareServers 5
+-MaxSpareServers 10
++MaxSpareServers 20
+ 
+ #
+ # Number of servers to start initially --- should be a reasonable ballpark
+ # figure.
+ #
+-StartServers 5
++StartServers 8
+ 
+ #
+ # Limit on total number of servers running, i.e., limit on the number
+@@ -164,7 +166,7 @@ MaxClients 150
+ #       an initial request and 10 subsequent "keptalive" requests, it
+ #       would only count as 1 request towards this limit.
+ #
+-MaxRequestsPerChild 0
++MaxRequestsPerChild 1000
+ 
+ #
+ # Listen: Allows you to bind Apache to specific IP addresses and/or
+@@ -173,6 +175,7 @@ MaxRequestsPerChild 0
+ #
+ #Listen 3000
+ #Listen 12.34.56.78:80
++#Listen 80
+ 
+ #
+ # BindAddress: You can support virtual hosts with this option. This directive
+@@ -197,7 +200,153 @@ MaxRequestsPerChild 0
+ # the order below without expert advice.
+ #
+ # Example:
+-# LoadModule foo_module libexec/mod_foo.so
++# LoadModule foo_module modules/mod_foo.so
++
++#LoadModule mmap_static_module modules/mod_mmap_static.so
++LoadModule vhost_alias_module modules/mod_vhost_alias.so
++<IfDefine HAVE_BANDWIDTH>
++LoadModule bandwidth_module   modules/mod_bandwidth.so
++</IfDefine>
++<IfDefine HAVE_THROTTLE>
++LoadModule throttle_module    modules/mod_throttle.so
++</IfDefine>
++LoadModule env_module         modules/mod_env.so
++LoadModule config_log_module  modules/mod_log_config.so
++LoadModule agent_log_module   modules/mod_log_agent.so
++LoadModule referer_log_module modules/mod_log_referer.so
++#LoadModule mime_magic_module  modules/mod_mime_magic.so
++LoadModule mime_module        modules/mod_mime.so
++LoadModule negotiation_module modules/mod_negotiation.so
++LoadModule status_module      modules/mod_status.so
++LoadModule info_module        modules/mod_info.so
++LoadModule includes_module    modules/mod_include.so
++LoadModule autoindex_module   modules/mod_autoindex.so
++LoadModule dir_module         modules/mod_dir.so
++LoadModule cgi_module         modules/mod_cgi.so
++LoadModule asis_module        modules/mod_asis.so
++LoadModule imap_module        modules/mod_imap.so
++LoadModule action_module      modules/mod_actions.so
++#LoadModule speling_module     modules/mod_speling.so
++LoadModule userdir_module     modules/mod_userdir.so
++LoadModule alias_module       modules/mod_alias.so
++LoadModule rewrite_module     modules/mod_rewrite.so
++LoadModule access_module      modules/mod_access.so
++LoadModule auth_module        modules/mod_auth.so
++LoadModule anon_auth_module   modules/mod_auth_anon.so
++#LoadModule db_auth_module     modules/mod_auth_db.so
++#LoadModule auth_any_module    modules/mod_auth_any.so
++#LoadModule dbm_auth_module    modules/mod_auth_dbm.so
++#LoadModule auth_ldap_module   modules/mod_auth_ldap.so
++#LoadModule mysql_auth_module  modules/mod_auth_mysql.so
++#LoadModule auth_pgsql_module  modules/mod_auth_pgsql.so
++#LoadModule digest_module      modules/mod_digest.so
++#LoadModule proxy_module       modules/libproxy.so
++#LoadModule cern_meta_module   modules/mod_cern_meta.so
++LoadModule expires_module     modules/mod_expires.so
++LoadModule headers_module     modules/mod_headers.so
++#LoadModule usertrack_module   modules/mod_usertrack.so
++#LoadModule example_module     modules/mod_example.so
++#LoadModule unique_id_module   modules/mod_unique_id.so
++LoadModule setenvif_module    modules/mod_setenvif.so
++
++<IfDefine HAVE_PHP>
++LoadModule php_module         modules/mod_php.so
++</IfDefine>
++<IfDefine HAVE_PHP3>
++LoadModule php3_module        modules/libphp3.so
++</IfDefine>
++<IfDefine HAVE_PHP4>
++LoadModule php4_module        modules/libphp4.so
++</IfDefine>
++<IfDefine HAVE_DAV>
++LoadModule dav_module         modules/libdav.so
++</IfDefine>
++<IfDefine HAVE_ROAMING>
++LoadModule roaming_module     modules/mod_roaming.so
++</IfDefine>
++<IfDefine HAVE_PUT>
++LoadModule put_module         modules/mod_put.so
++</IfDefine>
++<IfDefine HAVE_PYTHON>
++LoadModule python_module      modules/mod_python.so
++</IfDefine>
++
++#  Reconstruction of the complete module list from all available modules
++#  (static and shared ones) to achieve correct module execution order.
++#  [WHENEVER YOU CHANGE THE LOADMODULE SECTION ABOVE UPDATE THIS, TOO]
++ClearModuleList
++#AddModule mod_mmap_static.c
++AddModule mod_vhost_alias.c
++<IfDefine HAVE_BANDWIDTH>
++AddModule mod_bandwidth.c
++</IfDefine>
++<IfDefine HAVE_THROTTLE>
++AddModule mod_throttle.c
++</IfDefine>
++AddModule mod_env.c
++AddModule mod_log_config.c
++AddModule mod_log_agent.c
++AddModule mod_log_referer.c
++#AddModule mod_mime_magic.c
++AddModule mod_mime.c
++AddModule mod_negotiation.c
++AddModule mod_status.c
++AddModule mod_info.c
++AddModule mod_include.c
++AddModule mod_autoindex.c
++AddModule mod_dir.c
++AddModule mod_cgi.c
++AddModule mod_asis.c
++AddModule mod_imap.c
++AddModule mod_actions.c
++#AddModule mod_speling.c
++AddModule mod_userdir.c
++AddModule mod_alias.c
++AddModule mod_rewrite.c
++AddModule mod_access.c
++AddModule mod_auth.c
++AddModule mod_auth_anon.c
++#AddModule mod_auth_db.c
++#AddModule mod_auth_any.c
++#AddModule mod_auth_dbm.c
++#AddModule auth_ldap.c
++#AddModule mod_auth_mysql.c
++#AddModule mod_auth_pgsql.c
++#AddModule mod_digest.c
++#AddModule mod_proxy.c
++#AddModule mod_cern_meta.c
++AddModule mod_expires.c
++AddModule mod_headers.c
++#AddModule mod_usertrack.c
++#AddModule mod_example.c
++#AddModule mod_unique_id.c
++AddModule mod_so.c
++AddModule mod_setenvif.c
++
++AddModule mod_perl.c
++AddModule mod_ssl.c
++
++<IfDefine HAVE_PHP>
++AddModule mod_php.c
++</IfDefine>
++<IfDefine HAVE_PHP3>
++AddModule mod_php3.c
++</IfDefine>
++<IfDefine HAVE_PHP4>
++AddModule mod_php4.c
++</IfDefine>
++<IfDefine HAVE_DAV>
++AddModule mod_dav.c
++</IfDefine>
++<IfDefine HAVE_ROAMING>
++AddModule mod_roaming.c
++</IfDefine>
++<IfDefine HAVE_PUT>
++AddModule mod_put.c
++</IfDefine>
++<IfDefine HAVE_PYTHON>
++AddModule mod_python.c
++</IfDefine>
+ 
+ #
+ # ExtendedStatus controls whether Apache will generate "full" status
+@@ -229,7 +378,7 @@ MaxRequestsPerChild 0
+ # Port: The port to which the standalone server listens. For
+ # ports < 1023, you will need httpd to be run as root initially.
+ #
+-Port 80
++Port 81
+ 
+ ##
+ ##  SSL Support
+@@ -238,8 +387,8 @@ Port 80
+ ##  standard HTTP port (see above) and to the HTTPS port
+ ##
+ <IfDefine SSL>
+-Listen 80
+-Listen 443
++Listen 81
++Listen 444
+ </IfDefine>
+ 
+ #
+@@ -254,15 +403,15 @@ Listen 443
+ #  when the value of (unsigned)Group is above 60000; 
+ #  don't use Group "#-1" on these systems!
+ #
+-User nobody
+-Group "#-1"
++User apache
++Group apache
+ 
+ #
+ # ServerAdmin: Your address, where problems with the server should be
+ # e-mailed.  This address appears on some server-generated pages, such
+ # as error documents.
+ #
+-ServerAdmin you@your.address
++ServerAdmin root@localhost
+ 
+ #
+ # ServerName allows you to set a host name which is sent back to clients for
+@@ -280,14 +429,14 @@ ServerAdmin you@your.address
+ # machine always knows itself by this address. If you use Apache strictly for 
+ # local testing and development, you may use 127.0.0.1 as the server name.
+ #
+-#ServerName www.example.com
++#ServerName localhost
+ 
+ #
+ # DocumentRoot: The directory out of which you will serve your
+ # documents. By default, all requests are taken from this directory, but
+ # symbolic links and aliases may be used to point to other locations.
+ #
+-DocumentRoot "@@ServerRoot@@/htdocs"
++DocumentRoot "@@ContentRoot@@/html"
+ 
+ #
+ # Each directory to which Apache has access, can be configured with respect
+@@ -312,7 +461,7 @@ DocumentRoot "@@ServerRoot@@/htdocs"
+ #
+ # This should be changed to whatever you set DocumentRoot to.
+ #
+-<Directory "@@ServerRoot@@/htdocs">
++<Directory "@@ContentRoot@@/html">
+ 
+ #
+ # This may also be "None", "All", or any combination of "Indexes",
+@@ -341,9 +490,17 @@ DocumentRoot "@@ServerRoot@@/htdocs"
+ # UserDir: The name of the directory which is appended onto a user's home
+ # directory if a ~user request is received.
+ #
+-<IfModule mod_userdir.c>
+-    UserDir public_html
+-</IfModule>
++# The path to the end user account 'public_html' directory must be
++# accessible to the webserver userid.  This usually means that ~userid
++# must have permissions of 711, ~userid/public_html must have permissions
++# of 755, and documents contained therein must be world-readable.
++# Otherwise, the client will only receive a "403 Forbidden" message.
++#
++# See also: http://httpd.apache.org/docs/misc/FAQ.html#forbidden
++#
++#<IfModule mod_userdir.c>
++#    UserDir public_html
++#</IfModule>
+ 
+ #
+ # Control access to UserDir directories.  The following is an example
+@@ -367,7 +524,7 @@ DocumentRoot "@@ServerRoot@@/htdocs"
+ # directory index.  Separate multiple entries with spaces.
+ #
+ <IfModule mod_dir.c>
+-    DirectoryIndex index.html
++    DirectoryIndex index.html index.htm index.shtml index.php index.php4 index.php3 index.phtml index.cgi
+ </IfModule>
+ 
+ #
+@@ -442,6 +599,7 @@ DefaultType text/plain
+ # module is part of the server.
+ #
+ <IfModule mod_mime_magic.c>
++#   MIMEMagicFile /usr/share/magic.mime
+     MIMEMagicFile conf/magic
+ </IfModule>
+ 
+@@ -487,7 +645,8 @@ LogFormat "%{User-agent}i" agent
+ # define per-<VirtualHost> access logfiles, transactions will be
+ # logged therein and *not* in this file.
+ #
+-CustomLog logs/access_log common
++# CustomLog /var/log/httpd/access_log common
++CustomLog logs/access_log combined
+ 
+ #
+ # If you would like to have agent and referer logfiles, uncomment the
+@@ -547,9 +706,9 @@ ServerSignature On
+     # realname must also be slash terminated, and if the fakename omits the 
+     # trailing slash, the realname must also omit it.
+     #
+-    Alias /icons/ "@@ServerRoot@@/icons/"
++    Alias /icons/ "@@ContentRoot@@/icons/"
+ 
+-    <Directory "@@ServerRoot@@/icons">
++    <Directory "@@ContentRoot@@/icons">
+         Options Indexes MultiViews
+         AllowOverride None
+         Order allow,deny
+@@ -560,14 +719,14 @@ ServerSignature On
+     # even if you change the DocumentRoot. Comment it if you don't want to 
+     # provide access to the on-line documentation.
+     #
+-    Alias /manual/ "@@ServerRoot@@/htdocs/manual/"
+-
+-    <Directory "@@ServerRoot@@/htdocs/manual">
+-        Options Indexes FollowSymlinks MultiViews
+-        AllowOverride None
+-        Order allow,deny
+-        Allow from all
+-    </Directory>
++    # Alias /manual/ "@@ServerRoot@@/htdocs/manual/"
++    #
++    # <Directory "@@ServerRoot@@/htdocs/manual">
++    #     Options Indexes FollowSymlinks MultiViews
++    #     AllowOverride None
++    #     Order allow,deny
++    #     Allow from all
++    # </Directory>
+ 
+     #
+     # ScriptAlias: This controls which directories contain server scripts.
+@@ -577,13 +736,13 @@ ServerSignature On
+     # The same rules about trailing "/" apply to ScriptAlias directives as to
+     # Alias.
+     #
+-    ScriptAlias /cgi-bin/ "@@ServerRoot@@/cgi-bin/"
++    ScriptAlias /cgi-bin/ "@@ContentRoot@@/cgi-bin/"
+ 
+     #
+-    # "@@ServerRoot@@/cgi-bin" should be changed to whatever your ScriptAliased
++    # "@@ContentRoot@@/cgi-bin" should be changed to whatever your ScriptAliased
+     # CGI directory exists, if you have that configured.
+     #
+-    <Directory "@@ServerRoot@@/cgi-bin">
++    <Directory "@@ContentRoot@@/cgi-bin">
+         AllowOverride None
+         Options None
+         Order allow,deny
+@@ -608,7 +767,7 @@ ServerSignature On
+     #
+     # FancyIndexing is whether you want fancy directory indexing or standard
+     #
+-    IndexOptions FancyIndexing
++    IndexOptions FancyIndexing NameWidth=*
+ 
+     #
+     # AddIcon* directives tell the server which icon to show for different
+@@ -779,6 +938,22 @@ ServerSignature On
+     #AddType application/x-gzip .gz .tgz
+ 
+     #
++    # These types cause httpd to let the PHP interpreter handle files with
++    # the specified extensions.
++    #
++    <IfModule mod_php4.c>
++        AddType application/x-httpd-php .php .php4 .php3 .phtml
++        AddType application/x-httpd-php-source .phps
++    </IfModule>
++    <IfModule mod_php3.c>
++        AddType application/x-httpd-php3 .php3
++        AddType application/x-httpd-php3-source .phps
++    </IfModule>
++    <IfModule mod_php.c>
++        AddType application/x-httpd-php .phtml
++    </IfModule>
++
++    #
+     # AddHandler allows you to map certain file extensions to "handlers",
+     # actions unrelated to filetype. These can be either built into the server
+     # or added with the Action command (see below)
+@@ -884,6 +1059,39 @@ ServerSignature On
+ # End of browser customization directives
+ 
+ #
++# If the perl module is installed, this will allow execution of mod_perl
++# to compile your scripts to subroutines which it will execute directly,
++# avoiding the costly compile process for most requests.
++#
++#<IfModule mod_perl.c>
++#    Alias /perl /var/www/perl
++#    <Directory /var/www/perl>
++#        SetHandler perl-script
++#        PerlHandler Apache::Registry
++#        Options +ExecCGI
++#    </Directory>
++#</IfModule>
++
++#
++# Allow http put (such as Netscape Gold's publish feature)
++# Use htpasswd to generate /etc/httpd/conf/passwd.
++#
++#<IfModule mod_put.c>
++#    Alias /upload /tmp
++#    <Directory /tmp>
++#        EnablePut On
++#        AuthType Basic
++#        AuthName Temporary
++#        AuthUserFile /etc/httpd/conf/passwd
++#        EnableDelete Off
++#        umask 007
++#        <Limit PUT>
++#            require valid-user
++#        </Limit>
++#    </Directory>
++#</IfModule>
++
++#
+ # Allow server status reports, with the URL of http://servername/server-status
+ # Change the ".example.com" to match your domain to enable.
+ #
+@@ -907,6 +1115,17 @@ ServerSignature On
+ #</Location>
+ 
+ #
++# Allow access to local system documentation from localhost
++#
++Alias /doc/ /usr/share/doc/
++<Directory /usr/share/doc>
++    order deny,allow
++    deny from all
++    allow from localhost .localdomain
++    Options Indexes FollowSymLinks
++</Directory>
++
++#
+ # There have been reports of people trying to abuse an old bug from pre-1.1
+ # days.  This bug involved a CGI script distributed as a part of Apache.
+ # By uncommenting these lines you can redirect these attacks to a logging 
+@@ -934,7 +1153,7 @@ ServerSignature On
+ #
+ # Use name-based virtual hosting.
+ #
+-#NameVirtualHost *:80
++#NameVirtualHost *:81
+ 
+ #
+ # VirtualHost example:
+@@ -942,7 +1161,7 @@ ServerSignature On
+ # The first VirtualHost section is used for requests without a known
+ # server name.
+ #
+-#<VirtualHost *:80>
++#<VirtualHost *:81>
+ #    ServerAdmin webmaster@dummy-host.example.com
+ #    DocumentRoot /www/docs/dummy-host.example.com
+ #    ServerName dummy-host.example.com
+@@ -1025,7 +1244,7 @@ SSLLogLevel info
+ ## SSL Virtual Host Context
+ ##
+ 
+-<VirtualHost _default_:443>
++<VirtualHost _default_:444>
+ 
+ #  General setup for the virtual host
+ DocumentRoot "@@ServerRoot@@/htdocs"

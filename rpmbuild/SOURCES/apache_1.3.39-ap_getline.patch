@@ -1,0 +1,78 @@
+--- src/support/htpasswd.c.orig	2010-01-23 06:41:11.000000000 +0000
++++ src/support/htpasswd.c	2010-01-23 06:41:32.000000000 +0000
+@@ -98,7 +98,7 @@ static char *tname_buf = NULL;
+  * Get a line of input from the user, not including any terminating
+  * newline.
+  */
+-static int getline(char *s, int n, FILE *f)
++static int ap_getline(char *s, int n, FILE *f)
+ {
+     register int i = 0;
+ 
+@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
+ 	char scratch[MAX_STRING_LEN];
+ 
+ 	fpw = fopen(pwfilename, "r");
+-	while (! (getline(line, sizeof(line), fpw))) {
++	while (! (ap_getline(line, sizeof(line), fpw))) {
+ 	    char *colon;
+ 
+ 	    if ((line[0] == '#') || (line[0] == '\0')) {
+--- src/support/htdigest.c.orig	2010-01-23 06:41:42.000000000 +0000
++++ src/support/htdigest.c	2010-01-23 06:42:04.000000000 +0000
+@@ -71,7 +71,7 @@ static void getword(char *word, char *li
+     while ((line[y++] = line[x++]));
+ }
+ 
+-static int getline(char *s, int n, FILE *f)
++static int ap_getline(char *s, int n, FILE *f)
+ {
+     register int i = 0;
+ 
+@@ -158,7 +158,7 @@ static void copy_file(FILE *target, FILE
+ {
+     static char line[MAX_STRING_LEN];
+ 
+-    while (!(getline(line, MAX_STRING_LEN, source))) {  
++    while (!(ap_getline(line, MAX_STRING_LEN, source))) {  
+ 	putline(target, line);
+     }
+ }
+@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
+     ap_cpystrn(realm, argv[2], sizeof(realm));
+ 
+     found = 0;
+-    while (!(getline(line, MAX_STRING_LEN, f))) {
++    while (!(ap_getline(line, MAX_STRING_LEN, f))) {
+ 	if (found || (line[0] == '#') || (!line[0])) {
+ 	    putline(tfp, line);
+ 	    continue;
+--- src/support/logresolve.c.orig	2010-01-23 06:40:15.000000000 +0000
++++ src/support/logresolve.c	2010-01-23 06:40:44.000000000 +0000
+@@ -71,7 +71,7 @@
+ #endif /* !MPE && !WIN32*/
+ 
+ static void cgethost(struct in_addr ipnum, char *string, int check);
+-static int getline(char *s, int n);
++static int ap_getline(char *s, int n);
+ static void stats(FILE *output);
+ 
+ 
+@@ -278,7 +278,7 @@ static void stats (FILE *output)
+  * gets a line from stdin
+  */
+ 
+-static int getline (char *s, int n)
++static int ap_getline (char *s, int n)
+ {
+     char *cp;
+ 
+@@ -326,7 +326,7 @@ int main (int argc, char *argv[])
+     for (i = 0; i < MAX_ERR + 2; i++)
+ 	errors[i] = 0;
+ 
+-    while (getline(line, MAXLINE)) {
++    while (ap_getline(line, MAXLINE)) {
+ 	if (line[0] == '\0')
+ 	    continue;
+ 	entries++;
